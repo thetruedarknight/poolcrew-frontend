@@ -1,27 +1,21 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import {
-  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Customized
+  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer
 } from 'recharts';
 import { motion, useAnimation } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
-
 function Leaderboard() {
   const [players, setPlayers] = useState([]);
   const [eloHistory, setEloHistory] = useState({});
+  const [bobbleData, setBobbleData] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetch('https://poolcrew-backend.onrender.com/players')
       .then(res => res.json())
       .then(data => setPlayers(data));
-    fetch('https://poolcrew-backend.onrender.com/rebuild-elo', {
-  method: 'POST'
-})
-.then(() => {
-  console.log('ELO recalculated');
-  // Optional: Refresh leaderboard or show toast
-});
+
     fetch('https://poolcrew-backend.onrender.com/elo-history')
       .then(res => res.json())
       .then(data => setEloHistory(data));
@@ -55,9 +49,35 @@ function Leaderboard() {
     return row;
   });
 
- const sortedPlayers = useMemo(() => {
-  return [...players].sort((a, b) => b.elo - a.elo);
-}, [players]);
+  const sortedPlayers = useMemo(() => {
+    return [...players].sort((a, b) => b.elo - a.elo);
+  }, [players]);
+
+  useEffect(() => {
+    if (!players.length || !Object.keys(eloHistory).length) return;
+
+    const chartWidth = 640;
+    const chartHeight = 300;
+    const dates = chartData.map(d => d.date);
+    const minELO = Math.min(...Object.values(eloHistory).flat().map(d => d.elo));
+    const maxELO = Math.max(...Object.values(eloHistory).flat().map(d => d.elo));
+
+    const prepared = Object.entries(eloHistory).map(([player, entries]) => {
+      const photo = players.find(p => p.name === player)?.photo;
+      if (!photo || entries.length < 2) return null;
+
+      const duration = Math.min(8, 2.5 + entries.length * 0.05);
+      const path = entries.map(entry => {
+        const x = (dates.indexOf(entry.date) / (dates.length - 1)) * chartWidth;
+        const y = chartHeight - ((entry.elo - minELO) / (maxELO - minELO)) * chartHeight;
+        return { x: x - 16, y: y - 48 };
+      });
+
+      return { player, path, photo, duration };
+    }).filter(Boolean);
+
+    setBobbleData(prepared);
+  }, [players, eloHistory, chartData]);
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-gray-900 text-white rounded space-y-6">
@@ -80,77 +100,60 @@ function Leaderboard() {
       </ul>
 
       <h2 className="text-xl font-bold mt-8 mb-4">📈 ELO Progress Chart</h2>
-<div className="relative bg-gray-800 p-4 rounded-lg">
-  <ResponsiveContainer width="100%" height={300}>
-    <LineChart data={chartData}>
-      <XAxis dataKey="date" stroke="#aaa" />
-      <YAxis domain={['auto', 'auto']} stroke="#aaa" />
-      <Tooltip />
-      {Object.keys(eloHistory).map((player) => (
-        <Line
-          key={player}
-          type="monotone"
-          dataKey={player}
-          stroke={getColor(player)}
-          strokeWidth={2}
-          dot={false}
-          isAnimationActive={true}
-          animationDuration={4000}
-        />
-      ))}
-    </LineChart>
-  </ResponsiveContainer>
+      <div className="relative bg-gray-800 p-4 rounded-lg overflow-hidden" style={{ height: 300 }}>
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={chartData}>
+            <XAxis dataKey="date" stroke="#aaa" />
+            <YAxis domain={['auto', 'auto']} stroke="#aaa" />
+            <Tooltip />
+            {Object.keys(eloHistory).map((player) => (
+              <Line
+                key={player}
+                type="monotone"
+                dataKey={player}
+                stroke={getColor(player)}
+                strokeWidth={2}
+                dot={false}
+                isAnimationActive={true}
+                animationDuration={4000}
+              />
+            ))}
+          </LineChart>
+        </ResponsiveContainer>
 
-  {/* 🧠 Bobbleheads go here now */}
-  {Object.entries(eloHistory).map(([player, entries]) => {
-    const photo = players.find(p => p.name === player)?.photo;
-    if (!photo || entries.length < 2) return null;
+        {/* Absolutely positioned bobbleheads */}
+        {bobbleData.map(({ player, photo, path, duration }) => {
+          const controls = useAnimation();
 
-    const duration = Math.min(8, 2.5 + entries.length * 0.05);
-    const dates = chartData.map(d => d.date);
-    const chartWidth = 640; // adjust if needed
-    const chartHeight = 300;
+          useEffect(() => {
+            async function animate() {
+              await controls.start({
+                x: path.map(p => p.x),
+                y: path.map(p => p.y),
+                transition: { duration, ease: 'easeInOut' }
+              });
+              controls.start({
+                rotate: [0, 10, -10, 10, -10, 0],
+                transition: { repeat: Infinity, duration: 2, ease: 'easeInOut' }
+              });
+            }
+            animate();
+          }, []);
 
-    const minELO = Math.min(...Object.values(eloHistory).flat().map(d => d.elo));
-    const maxELO = Math.max(...Object.values(eloHistory).flat().map(d => d.elo));
-
-    const path = entries.map(entry => {
-      const x = (dates.indexOf(entry.date) / (dates.length - 1)) * chartWidth;
-      const y = chartHeight - ((entry.elo - minELO) / (maxELO - minELO)) * chartHeight;
-      return { x: x - 16, y: y - 48 };
-    });
-
-    const controls = useAnimation();
-    useEffect(() => {
-      async function animate() {
-        await controls.start({
-          x: path.map(p => p.x),
-          y: path.map(p => p.y),
-          transition: { duration, ease: 'easeInOut' }
-        });
-        controls.start({
-          rotate: [0, 10, -10, 10, -10, 0],
-          transition: { repeat: Infinity, duration: 2, ease: 'easeInOut' }
-        });
-      }
-      animate();
-    }, []);
-
-    return (
-      <motion.img
-        key={player}
-        src={photo}
-        alt={player}
-        className="absolute w-8 h-8 rounded-full"
-        initial={path[0]}
-        animate={controls}
-        style={{ cursor: 'pointer' }}
-        onClick={() => navigate(`/player/${encodeURIComponent(player)}`)}
-      />
-    );
-  })}
-</div>
-
+          return (
+            <motion.img
+              key={player}
+              src={photo}
+              alt={player}
+              className="absolute w-8 h-8 rounded-full"
+              initial={path[0]}
+              animate={controls}
+              style={{ cursor: 'pointer' }}
+              onClick={() => navigate(`/player/${encodeURIComponent(player)}`)}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 }
