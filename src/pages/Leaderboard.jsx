@@ -80,43 +80,47 @@ function Leaderboard() {
       </ul>
 
       <h2 className="text-xl font-bold mt-8 mb-4">📈 ELO Progress Chart</h2>
-      <div className="bg-gray-800 p-4 rounded-lg">
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={chartData}>
-            <XAxis dataKey="date" stroke="#aaa" />
-            <YAxis domain={['auto', 'auto']} stroke="#aaa" />
-            <Tooltip />
-            {Object.keys(eloHistory).map((player) => (
-              <Line
-                key={player}
-                type="monotone"
-                dataKey={player}
-                stroke={getColor(player)}
-                strokeWidth={2}
-                dot={false}
-                isAnimationActive={true}
-                animationDuration={4000}
-              />
-            ))}
+<div className="relative bg-gray-800 p-4 rounded-lg">
+  <ResponsiveContainer width="100%" height={300}>
+    <LineChart data={chartData}>
+      <XAxis dataKey="date" stroke="#aaa" />
+      <YAxis domain={['auto', 'auto']} stroke="#aaa" />
+      <Tooltip />
+      {Object.keys(eloHistory).map((player) => (
+        <Line
+          key={player}
+          type="monotone"
+          dataKey={player}
+          stroke={getColor(player)}
+          strokeWidth={2}
+          dot={false}
+          isAnimationActive={true}
+          animationDuration={4000}
+        />
+      ))}
+    </LineChart>
+  </ResponsiveContainer>
 
-            <Customized component={({ height, width }) => {
-  const minELO = Math.min(...Object.values(eloHistory).flat().map(d => d.elo));
-  const maxELO = Math.max(...Object.values(eloHistory).flat().map(d => d.elo));
-  const dates = chartData.map(d => d.date);
-
-  return Object.entries(eloHistory).map(([player, entries]) => {
+  {/* 🧠 Bobbleheads go here now */}
+  {Object.entries(eloHistory).map(([player, entries]) => {
     const photo = players.find(p => p.name === player)?.photo;
     if (!photo || entries.length < 2) return null;
 
     const duration = Math.min(8, 2.5 + entries.length * 0.05);
+    const dates = chartData.map(d => d.date);
+    const chartWidth = 640; // adjust if needed
+    const chartHeight = 300;
+
+    const minELO = Math.min(...Object.values(eloHistory).flat().map(d => d.elo));
+    const maxELO = Math.max(...Object.values(eloHistory).flat().map(d => d.elo));
+
     const path = entries.map(entry => {
-      const x = (dates.indexOf(entry.date) / (dates.length - 1)) * width;
-      const y = height - ((entry.elo - minELO) / (maxELO - minELO)) * height;
+      const x = (dates.indexOf(entry.date) / (dates.length - 1)) * chartWidth;
+      const y = chartHeight - ((entry.elo - minELO) / (maxELO - minELO)) * chartHeight;
       return { x: x - 16, y: y - 48 };
     });
 
     const controls = useAnimation();
-
     useEffect(() => {
       async function animate() {
         await controls.start({
@@ -133,30 +137,20 @@ function Leaderboard() {
     }, []);
 
     return (
-      <foreignObject
+      <motion.img
         key={player}
-        width="32"
-        height="32"
-        requiredExtensions="http://www.w3.org/1999/xhtml"
-      >
-        <motion.img
-          src={photo}
-          alt={player}
-          width="32"
-          height="32"
-          style={{ borderRadius: '50%', cursor: 'pointer' }}
-          animate={controls}
-          initial={path[0]}
-          onClick={() => navigate(`/player/${encodeURIComponent(player)}`)}
-        />
-      </foreignObject>
+        src={photo}
+        alt={player}
+        className="absolute w-8 h-8 rounded-full"
+        initial={path[0]}
+        animate={controls}
+        style={{ cursor: 'pointer' }}
+        onClick={() => navigate(`/player/${encodeURIComponent(player)}`)}
+      />
     );
-  });
-}} />
+  })}
+</div>
 
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
     </div>
   );
 }
