@@ -68,7 +68,7 @@ function Leaderboard() {
       const path = entries.map(entry => {
         const x = (dates.indexOf(entry.date) / (dates.length - 1)) * chartWidth;
         const y = chartHeight - ((entry.elo - minELO) / (maxELO - minELO)) * chartHeight;
-        return { x: x - 16, y: y - 300 };
+        return { x: x - 25, y: y - 325 };
       });
 
       return { player, photo, path, duration };
