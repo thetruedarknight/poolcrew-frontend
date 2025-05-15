@@ -4,6 +4,8 @@ import {
 } from 'recharts';
 import { motion, useAnimation } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import Bobblehead from './Bobblehead';
+
 
 function Leaderboard() {
   const [players, setPlayers] = useState([]);
@@ -146,18 +148,16 @@ function Leaderboard() {
         </ResponsiveContainer>
 
         {/* Bobbleheads */}
-        {bobbleData.map(({ player, photo, path }) => (
-          <motion.img
-            key={player}
-            src={photo}
-            alt={player}
-            className="absolute w-8 h-8 rounded-full"
-            initial={path[0]}
-            animate={controlsMap[player]}
-            style={{ cursor: 'pointer' }}
-            onClick={() => navigate(`/player/${encodeURIComponent(player)}`)}
-          />
-        ))}
+      {bobbleData.map(({ player, photo, path, duration }) => (
+  <Bobblehead
+    key={player}
+    player={player}
+    photo={photo}
+    path={path}
+    duration={duration}
+  />
+))}
+
       </div>
     </div>
   );
