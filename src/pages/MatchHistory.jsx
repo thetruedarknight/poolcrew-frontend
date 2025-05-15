@@ -4,7 +4,7 @@ function MatchHistory() {
   const [matches, setMatches] = useState([]);
 
 useEffect(() => {
-  fetch('http://localhost:3001/match-history')
+  fetch('https://poolcrew-backend.onrender.com/match-history')
     .then(res => res.json())
     .then(data => {
       setMatches(data.map(m => ({ ...m }))); // ✅ inside the .then()
@@ -50,7 +50,7 @@ useEffect(() => {
       setMatches(updated); // update local state immediately
     }
 
-    fetch('http://localhost:3001/ignore-match', {
+    fetch('https://poolcrew-backend.onrender.com/ignore-match', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -76,7 +76,7 @@ useEffect(() => {
   <button
     onClick={() => {
   if (confirm('Are you sure you want to delete the most recent match? This cannot be undone.')) {
-    fetch('http://localhost:3001/last-match', {
+    fetch('https://poolcrew-backend.onrender.com/last-match', {
       method: 'DELETE'
     })
       .then(res => {

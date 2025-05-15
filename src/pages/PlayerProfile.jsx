@@ -7,7 +7,7 @@ function PlayerProfile() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`http://localhost:3001/player/${name}/stats`)
+    fetch(`https://poolcrew-backend.onrender.com/player/${name}/stats`)
       .then(res => res.json())
       .then(data => {
         setPlayer(data);

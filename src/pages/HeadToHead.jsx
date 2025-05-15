@@ -8,14 +8,14 @@ function HeadToHead() {
   const [selectedGameType, setSelectedGameType] = useState('');
 
   useEffect(() => {
-    fetch('http://localhost:3001/players')
+    fetch('https://poolcrew-backend.onrender.com/players')
       .then(res => res.json())
       .then(data => setPlayers(data));
   }, []);
 
   const fetchStats = async () => {
     if (!playerA || !playerB || playerA === playerB) return;
-    const res = await fetch(`http://localhost:3001/h2h?playerA=${playerA}&playerB=${playerB}`);
+    const res = await fetch(`https://poolcrew-backend.onrender.com/h2h?playerA=${playerA}&playerB=${playerB}`);
     const data = await res.json();
     setH2hStats(data);
     setSelectedGameType(''); // Reset game type filter

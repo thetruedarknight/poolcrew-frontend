@@ -12,17 +12,17 @@ function Leaderboard() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch('http://localhost:3001/players')
+    fetch('https://poolcrew-backend.onrender.com/players')
       .then(res => res.json())
       .then(data => setPlayers(data));
-    fetch('http://localhost:3001/rebuild-elo', {
+    fetch('https://poolcrew-backend.onrender.com/rebuild-elo', {
   method: 'POST'
 })
 .then(() => {
   console.log('ELO recalculated');
   // Optional: Refresh leaderboard or show toast
 });
-    fetch('http://localhost:3001/elo-history')
+    fetch('https://poolcrew-backend.onrender.com/elo-history')
       .then(res => res.json())
       .then(data => setEloHistory(data));
   }, []);

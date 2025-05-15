@@ -7,7 +7,7 @@ function PlayerSelectPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch('http://localhost:3001/players')
+    fetch('https://poolcrew-backend.onrender.com/players')
       .then(res => res.json())
       .then(data => setPlayers(data));
   }, []);

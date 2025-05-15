@@ -13,7 +13,7 @@ function OneVsOneLog() {
   const [notes, setNotes] = useState('');
 
   useEffect(() => {
-    fetch('http://localhost:3001/players')
+    fetch('https://poolcrew-backend.onrender.com/players')
       .then(res => res.json())
       .then(data => setPlayers(data));
   }, []);
@@ -35,7 +35,7 @@ function OneVsOneLog() {
       notes,
     };
 
-    const res = await fetch('http://localhost:3001/1v1', {
+    const res = await fetch('https://poolcrew-backend.onrender.com/1v1', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),

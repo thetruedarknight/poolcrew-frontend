@@ -10,7 +10,7 @@ function MatchInput() {
   const [notes, setNotes] = useState('');
 
   useEffect(() => {
-    fetch('http://localhost:3001/players')
+    fetch('https://poolcrew-backend.onrender.com/players')
       .then(res => res.json())
       .then(data => setPlayers(data));
   }, []);
@@ -34,7 +34,7 @@ const handleSubmit = async (e) => {
     notes,
   };
 
-  const res = await fetch('http://localhost:3001/match', {
+  const res = await fetch('https://poolcrew-backend.onrender.com/match', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
