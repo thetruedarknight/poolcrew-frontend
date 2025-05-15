@@ -2,17 +2,12 @@ import React, { useEffect, useState, useMemo } from 'react';
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer
 } from 'recharts';
-import { motion, useAnimation } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import Bobblehead from './Bobblehead';
-
+import Bobblehead from './Bobblehead'; // ✅ Make sure this file exists
 
 function Leaderboard() {
   const [players, setPlayers] = useState([]);
   const [eloHistory, setEloHistory] = useState({});
   const [bobbleData, setBobbleData] = useState([]);
-  const [controlsMap, setControlsMap] = useState({});
-  const navigate = useNavigate();
 
   useEffect(() => {
     fetch('https://poolcrew-backend.onrender.com/players')
@@ -65,7 +60,6 @@ function Leaderboard() {
     const minELO = Math.min(...Object.values(eloHistory).flat().map(d => d.elo));
     const maxELO = Math.max(...Object.values(eloHistory).flat().map(d => d.elo));
 
-    const newControls = {};
     const prepared = Object.entries(eloHistory).map(([player, entries]) => {
       const photo = players.find(p => p.name === player)?.photo;
       if (!photo || entries.length < 2) return null;
@@ -77,33 +71,11 @@ function Leaderboard() {
         return { x: x - 16, y: y - 48 };
       });
 
-      const controls = useAnimation();
-      newControls[player] = controls;
-
-      return { player, path, photo, duration };
+      return { player, photo, path, duration };
     }).filter(Boolean);
 
-    setControlsMap(newControls);
     setBobbleData(prepared);
-
-    // Start animations after data is fully processed
-    for (const { player, path, duration } of prepared) {
-      const controls = newControls[player];
-      if (!controls) continue;
-
-      (async () => {
-        await controls.start({
-          x: path.map(p => p.x),
-          y: path.map(p => p.y),
-          transition: { duration, ease: 'easeInOut' }
-        });
-        controls.start({
-          rotate: [0, 10, -10, 10, -10, 0],
-          transition: { repeat: Infinity, duration: 2, ease: 'easeInOut' }
-        });
-      })();
-    }
-  }, [players, eloHistory]);
+  }, [players, eloHistory, chartData]);
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-gray-900 text-white rounded space-y-6">
@@ -147,17 +119,16 @@ function Leaderboard() {
           </LineChart>
         </ResponsiveContainer>
 
-        {/* Bobbleheads */}
-      {bobbleData.map(({ player, photo, path, duration }) => (
-  <Bobblehead
-    key={player}
-    player={player}
-    photo={photo}
-    path={path}
-    duration={duration}
-  />
-))}
-
+        {/* ✅ Bobbleheads safely rendered via child component */}
+        {bobbleData.map(({ player, photo, path, duration }) => (
+          <Bobblehead
+            key={player}
+            player={player}
+            photo={photo}
+            path={path}
+            duration={duration}
+          />
+        ))}
       </div>
     </div>
   );

@@ -1,4 +1,3 @@
-// Bobblehead.jsx
 import React, { useEffect } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -12,15 +11,17 @@ const Bobblehead = ({ player, photo, path, duration }) => {
       await controls.start({
         x: path.map(p => p.x),
         y: path.map(p => p.y),
-        transition: { duration, ease: 'easeInOut' }
+        transition: { duration, ease: 'easeInOut' },
       });
       controls.start({
         rotate: [0, 10, -10, 10, -10, 0],
-        transition: { repeat: Infinity, duration: 2, ease: 'easeInOut' }
+        transition: { repeat: Infinity, duration: 2, ease: 'easeInOut' },
       });
     }
     animate();
   }, []);
+
+  if (!photo || !path?.length) return null;
 
   return (
     <motion.img
