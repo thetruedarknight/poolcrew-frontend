@@ -98,7 +98,7 @@ function Leaderboard() {
       </ul>
 
       <h2 className="text-xl font-bold mt-8 mb-4">📈 ELO Progress Chart</h2>
-      <div className="relative bg-gray-800 p-4 rounded-lg overflow-hidden" style={{ height: 300 }}>
+      <div className="relative bg-gray-800 p-4 rounded-lg" style={{ height: 300, overflow: 'visible' }}>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={chartData}>
             <XAxis dataKey="date" stroke="#aaa" />

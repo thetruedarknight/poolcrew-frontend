@@ -27,7 +27,8 @@ const Bobblehead = ({ player, photo, path, duration }) => {
     <motion.img
       src={photo}
       alt={player}
-      className="absolute w-8 h-8 rounded-full"
+      className="absolute w-8 h-8 rounded-full z-50"
+
       initial={path[0]}
       animate={controls}
       style={{ cursor: 'pointer' }}
