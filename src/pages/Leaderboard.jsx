@@ -9,16 +9,17 @@ function Leaderboard() {
   const [players, setPlayers] = useState([]);
   const [eloHistory, setEloHistory] = useState({});
   const [bobbleData, setBobbleData] = useState([]);
+  const [controlsMap, setControlsMap] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
     fetch('https://poolcrew-backend.onrender.com/players')
       .then(res => res.json())
-      .then(data => setPlayers(data));
+      .then(setPlayers);
 
     fetch('https://poolcrew-backend.onrender.com/elo-history')
       .then(res => res.json())
-      .then(data => setEloHistory(data));
+      .then(setEloHistory);
   }, []);
 
   const playerColors = [
@@ -62,6 +63,7 @@ function Leaderboard() {
     const minELO = Math.min(...Object.values(eloHistory).flat().map(d => d.elo));
     const maxELO = Math.max(...Object.values(eloHistory).flat().map(d => d.elo));
 
+    const newControls = {};
     const prepared = Object.entries(eloHistory).map(([player, entries]) => {
       const photo = players.find(p => p.name === player)?.photo;
       if (!photo || entries.length < 2) return null;
@@ -73,11 +75,33 @@ function Leaderboard() {
         return { x: x - 16, y: y - 48 };
       });
 
+      const controls = useAnimation();
+      newControls[player] = controls;
+
       return { player, path, photo, duration };
     }).filter(Boolean);
 
+    setControlsMap(newControls);
     setBobbleData(prepared);
-  }, [players, eloHistory, chartData]);
+
+    // Start animations after data is fully processed
+    for (const { player, path, duration } of prepared) {
+      const controls = newControls[player];
+      if (!controls) continue;
+
+      (async () => {
+        await controls.start({
+          x: path.map(p => p.x),
+          y: path.map(p => p.y),
+          transition: { duration, ease: 'easeInOut' }
+        });
+        controls.start({
+          rotate: [0, 10, -10, 10, -10, 0],
+          transition: { repeat: Infinity, duration: 2, ease: 'easeInOut' }
+        });
+      })();
+    }
+  }, [players, eloHistory]);
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-gray-900 text-white rounded space-y-6">
@@ -121,38 +145,19 @@ function Leaderboard() {
           </LineChart>
         </ResponsiveContainer>
 
-        {/* Absolutely positioned bobbleheads */}
-        {bobbleData.map(({ player, photo, path, duration }) => {
-          const controls = useAnimation();
-
-          useEffect(() => {
-            async function animate() {
-              await controls.start({
-                x: path.map(p => p.x),
-                y: path.map(p => p.y),
-                transition: { duration, ease: 'easeInOut' }
-              });
-              controls.start({
-                rotate: [0, 10, -10, 10, -10, 0],
-                transition: { repeat: Infinity, duration: 2, ease: 'easeInOut' }
-              });
-            }
-            animate();
-          }, []);
-
-          return (
-            <motion.img
-              key={player}
-              src={photo}
-              alt={player}
-              className="absolute w-8 h-8 rounded-full"
-              initial={path[0]}
-              animate={controls}
-              style={{ cursor: 'pointer' }}
-              onClick={() => navigate(`/player/${encodeURIComponent(player)}`)}
-            />
-          );
-        })}
+        {/* Bobbleheads */}
+        {bobbleData.map(({ player, photo, path }) => (
+          <motion.img
+            key={player}
+            src={photo}
+            alt={player}
+            className="absolute w-8 h-8 rounded-full"
+            initial={path[0]}
+            animate={controlsMap[player]}
+            style={{ cursor: 'pointer' }}
+            onClick={() => navigate(`/player/${encodeURIComponent(player)}`)}
+          />
+        ))}
       </div>
     </div>
   );
